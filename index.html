@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>칼로리 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.3/NanumSquareNeo.woff');
+        
+        body {
+            font-family: 'NanumSquareNeo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .upload-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .upload-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        .image-preview {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sample-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border: 2px dashed #667eea;
+        }
+
+        .sample-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .sample-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .sample-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .sample-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .sample-image {
+            margin-bottom: 10px;
+        }
+
+        .sample-image img {
+            width: 100%;
+            max-width: 120px;
+            border-radius: 8px;
+        }
+
+        .sample-info {
+            text-align: center;
+        }
+
+        .sample-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .sample-calories {
+            color: #667eea;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .sample-note {
+            text-align: center;
+            color: #667eea;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .calculation-process {
+            background: #f0f4ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .calculation-process h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .calculation-steps {
+            list-style: none;
+            padding: 0;
+        }
+
+        .calculation-steps li {
+            background: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .calculation-steps li::before {
+            content: "• ";
+            color: #667eea;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .exercise-recommendations {
+            background: #f0f8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #10b981;
+        }
+
+        .exercise-recommendations h3 {
+            color: #10b981;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .exercise-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #10b981;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .exercise-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 0.9rem;
+        }
+
+        .exercise-duration {
+            color: #10b981;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .food-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .food-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .food-calories {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .total-calories {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .reset-btn {
+            background: #6b7280;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+                     @media (max-width: 480px) {
+             .container {
+                 padding: 15px;
+             }
+             
+             .header h1 {
+                 font-size: 2rem;
+             }
+             
+             .upload-section {
+                 padding: 20px;
+             }
+             
+             .upload-buttons {
+                 flex-direction: column;
+             }
+             
+             .results {
+                 padding: 20px;
+             }
+
+             .sample-gallery {
+                 grid-template-columns: 1fr 1fr;
+             }
+
+             .exercise-grid {
+                 grid-template-columns: 1fr;
+             }
+         }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ 칼로리 계산기</h1>
+            <p>사진으로 간편하게 칼로리를 계산하세요</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-buttons">
+                <button class="upload-btn" onclick="openCamera()">
+                    📷 사진 촬영
+                </button>
+                <button class="upload-btn" onclick="openGallery()">
+                    📁 갤러리 선택
+                </button>
+            </div>
+
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleImageUpload(event)">
+            <input type="file" id="galleryInput" accept="image/*" onchange="handleImageUpload(event)">
+
+            <!-- 샘플 이미지 및 결과 -->
+            <div class="sample-section" id="sampleSection">
+                <h3>📋 사용법 예시</h3>
+                <div class="sample-gallery">
+                    <!-- 김치찌개 샘플 -->
+                    <div class="sample-item">
+                        <div class="sample-image">
+                            <img src="images/menu1.jpg" alt="김치찌개">
+                        </div>
+                        <div class="sample-info">
+                            <div class="sample-title">🍲 김치찌개 + 밥</div>
+                            <div class="sample-calories">530kcal</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 스파게티 샘플 -->
+                    <div class="sample-item">
+                        <div class="sample-image">
+                            <img src="images/menu2.jpg" alt="스파게티">
+                        </div>
+                        <div class="sample-info">
+                            <div class="sample-title">🍝 스파게티</div>
+                            <div class="sample-calories">420kcal</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 햄버거 샘플 -->
+                    <div class="sample-item">
+                        <div class="sample-image">
+                            <img src="images/menu3.jpg" alt="햄버거">
+                        </div>
+                        <div class="sample-info">
+                            <div class="sample-title">🍔 햄버거</div>
+                            <div class="sample-calories">680kcal</div>
+                        </div>
+                    </div>
+
+                    <!-- 샌드위치 샘플 -->
+                    <div class="sample-item">
+                        <div class="sample-image">
+                            <img src="images/menu4.jpg" alt="샌드위치">
+                        </div>
+                        <div class="sample-info">
+                            <div class="sample-title">🥪 샌드위치</div>
+                            <div class="sample-calories">350kcal</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sample-note">📱 위와 같은 음식 사진을 업로드하면 칼로리를 자동으로 계산해드립니다!</div>
+            </div>
+
+            <div class="image-preview" id="imagePreview">
+                <img id="previewImg" src="" alt="미리보기">
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>이미지를 분석 중입니다...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="results" id="results">
+            <h2>📊 인식 결과</h2>
+            <div id="foodList"></div>
+            
+            <!-- 계산 과정 표시 -->
+            <div class="calculation-process" id="calculationProcess">
+                <h3>🧮 칼로리 계산 과정</h3>
+                <ul class="calculation-steps" id="calculationSteps"></ul>
+            </div>
+
+            <!-- 운동량 제시 -->
+            <div class="exercise-recommendations" id="exerciseRecommendations">
+                <h3>🏃‍♂️ 소모하기 위한 운동량</h3>
+                <div class="exercise-grid" id="exerciseGrid"></div>
+            </div>
+            
+            <div class="total-calories" id="totalCalories"></div>
+            <div class="action-buttons">
+                <button class="action-btn copy-btn" onclick="copyResults()">📋 결과 복사</button>
+                <button class="action-btn reset-btn" onclick="resetApp()">🔄 다시 촬영</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GEMINI_API_KEY = 'AIzaSyAuIw9_z2inrQvqZHgvnfpr3gSso0C8LdU';
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        let currentResults = null;
+
+        // 운동별 칼로리 소모량 (kcal/분, 70kg 성인 기준)
+        const exerciseData = [
+            { name: '달리기', icon: '🏃‍♂️', caloriesPerMinute: 10 },
+            { name: '자전거 타기', icon: '🚴‍♂️', caloriesPerMinute: 8 },
+            { name: '등산', icon: '🥾', caloriesPerMinute: 6 },
+            { name: '수영', icon: '🏊‍♂️', caloriesPerMinute: 9 },
+            { name: '걷기', icon: '🚶‍♂️', caloriesPerMinute: 4 },
+            { name: '계단 오르기', icon: '🪜', caloriesPerMinute: 12 }
+        ];
+
+        function calculateExercise(calories) {
+            return exerciseData.map(exercise => {
+                const minutes = Math.round(calories / exercise.caloriesPerMinute);
+                let duration;
+                
+                if (minutes >= 60) {
+                    const hours = Math.floor(minutes / 60);
+                    const remainingMinutes = minutes % 60;
+                    duration = remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+                } else {
+                    duration = `${minutes}분`;
+                }
+                
+                return {
+                    ...exercise,
+                    duration: duration,
+                    minutes: minutes
+                };
+            });
+        }
+
+        function openCamera() {
+            document.getElementById('cameraInput').click();
+        }
+
+        function openGallery() {
+            document.getElementById('galleryInput').click();
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 이미지 미리보기
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('previewImg');
+                const imagePreview = document.getElementById('imagePreview');
+                
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+                
+                // 이미지 분석 시작
+                analyzeImage(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeImage(imageDataUrl) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            // UI 초기화
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.style.display = 'none';
+
+            try {
+                // base64 데이터 추출
+                const base64Data = imageDataUrl.split(',')[1];
+                
+                                 const requestBody = {
+                     contents: [{
+                         parts: [
+                             {
+                                 text: `이 이미지에 있는 음식을 분석하고 다음 형식으로 정확히 응답해주세요:
+
+음식1: 음식명 - 예상량 - 칼로리
+음식2: 음식명 - 예상량 - 칼로리
+...
+총 칼로리: XXXkcal
+
+계산과정:
+- 음식1 칼로리 계산 근거 (예: 김치찌개 1인분 기준 일반적 칼로리)
+- 음식2 칼로리 계산 근거
+- 총합 계산 과정
+
+예시:
+김치찌개: 김치찌개 - 1인분 - 320kcal
+밥: 밥 - 1공기 - 210kcal
+총 칼로리: 530kcal
+
+계산과정:
+- 김치찌개 1인분: 일반적으로 국물포함 300-350kcal 범위, 중간값 320kcal 적용
+- 밥 1공기: 표준 공기(150g) 기준 약 210kcal
+- 총합: 320kcal + 210kcal = 530kcal
+
+만약 음식이 인식되지 않으면 "음식을 인식할 수 없습니다"라고 응답해주세요.`
+                             },
+                            {
+                                inline_data: {
+                                    mime_type: "image/jpeg",
+                                    data: base64Data
+                                }
+                            }
+                        ]
+                    }]
+                };
+
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 호출 실패: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const analysisResult = data.candidates[0].content.parts[0].text;
+                
+                displayResults(analysisResult);
+                
+            } catch (err) {
+                console.error('이미지 분석 오류:', err);
+                showError('이미지 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+                 function displayResults(analysisText) {
+             if (analysisText.includes('음식을 인식할 수 없습니다')) {
+                 showError('음식을 인식할 수 없습니다. 다른 이미지로 시도해주세요.');
+                 return;
+             }
+
+             const lines = analysisText.split('\n').filter(line => line.trim());
+             const foodItems = [];
+             const calculationSteps = [];
+             let totalCalories = 0;
+             let isCalculationSection = false;
+
+             lines.forEach(line => {
+                 if (line.includes('계산과정:')) {
+                     isCalculationSection = true;
+                 } else if (isCalculationSection && line.startsWith('-')) {
+                     // 계산 과정 항목
+                     calculationSteps.push(line.substring(1).trim());
+                 } else if (line.includes('총 칼로리:') || line.includes('총칼로리:')) {
+                     const calorieMatch = line.match(/(\d+)kcal/);
+                     if (calorieMatch) {
+                         totalCalories = parseInt(calorieMatch[1]);
+                     }
+                 } else if (line.includes('-') && line.includes('kcal') && !isCalculationSection) {
+                     // 음식 항목 파싱
+                     const parts = line.split(':');
+                     if (parts.length >= 2) {
+                         const foodName = parts[0].trim();
+                         const details = parts[1].trim();
+                         const calorieMatch = details.match(/(\d+)kcal/);
+                         const calories = calorieMatch ? parseInt(calorieMatch[1]) : 0;
+                         
+                         foodItems.push({
+                             name: foodName,
+                             details: details,
+                             calories: calories
+                         });
+                     }
+                 }
+             });
+
+             // 총 칼로리가 0이면 개별 칼로리 합계로 계산
+             if (totalCalories === 0) {
+                 totalCalories = foodItems.reduce((sum, item) => sum + item.calories, 0);
+             }
+
+             currentResults = {
+                 foods: foodItems,
+                 total: totalCalories,
+                 calculationSteps: calculationSteps,
+                 originalText: analysisText
+             };
+
+             // UI 업데이트
+             const foodList = document.getElementById('foodList');
+             const totalCaloriesEl = document.getElementById('totalCalories');
+             const calculationStepsEl = document.getElementById('calculationSteps');
+             const exerciseGrid = document.getElementById('exerciseGrid');
+             const results = document.getElementById('results');
+             const sampleSection = document.getElementById('sampleSection');
+
+             // 샘플 섹션 숨기기
+             sampleSection.style.display = 'none';
+
+             foodList.innerHTML = '';
+             calculationStepsEl.innerHTML = '';
+             exerciseGrid.innerHTML = '';
+             
+             if (foodItems.length === 0) {
+                 foodList.innerHTML = '<div class="food-item"><div class="food-name">분석 결과를 파싱할 수 없습니다</div><div class="food-calories">원본: ' + analysisText + '</div></div>';
+             } else {
+                 foodItems.forEach(food => {
+                     const foodItem = document.createElement('div');
+                     foodItem.className = 'food-item';
+                     foodItem.innerHTML = `
+                         <div class="food-name">${food.name}</div>
+                         <div class="food-calories">${food.details}</div>
+                     `;
+                     foodList.appendChild(foodItem);
+                 });
+             }
+
+             // 계산 과정 표시
+             if (calculationSteps.length > 0) {
+                 calculationSteps.forEach(step => {
+                     const li = document.createElement('li');
+                     li.textContent = step;
+                     calculationStepsEl.appendChild(li);
+                 });
+             } else {
+                 // 기본 계산 과정 생성
+                 if (foodItems.length > 0) {
+                     foodItems.forEach(food => {
+                         const li = document.createElement('li');
+                         li.textContent = `${food.name}: ${food.details}`;
+                         calculationStepsEl.appendChild(li);
+                     });
+                     
+                     const totalLi = document.createElement('li');
+                     const individualCalories = foodItems.map(food => `${food.calories}kcal`).join(' + ');
+                     totalLi.textContent = `총합: ${individualCalories} = ${totalCalories}kcal`;
+                     calculationStepsEl.appendChild(totalLi);
+                 }
+             }
+
+             // 운동량 계산 및 표시
+             if (totalCalories > 0) {
+                 const exercises = calculateExercise(totalCalories);
+                 exercises.forEach(exercise => {
+                     const exerciseItem = document.createElement('div');
+                     exerciseItem.className = 'exercise-item';
+                     exerciseItem.innerHTML = `
+                         <div class="exercise-icon">${exercise.icon}</div>
+                         <div class="exercise-info">
+                             <div class="exercise-name">${exercise.name}</div>
+                             <div class="exercise-duration">${exercise.duration}</div>
+                         </div>
+                     `;
+                     exerciseGrid.appendChild(exerciseItem);
+                 });
+             }
+
+             totalCaloriesEl.textContent = `총 예상 칼로리: ${totalCalories}kcal`;
+             results.style.display = 'block';
+         }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+                 function copyResults() {
+             if (!currentResults) return;
+
+             let copyText = '🍽️ 칼로리 계산 결과\n\n';
+             
+             copyText += '📊 인식된 음식:\n';
+             currentResults.foods.forEach(food => {
+                 copyText += `• ${food.name}: ${food.details}\n`;
+             });
+             
+             if (currentResults.calculationSteps && currentResults.calculationSteps.length > 0) {
+                 copyText += '\n🧮 계산 과정:\n';
+                 currentResults.calculationSteps.forEach(step => {
+                     copyText += `• ${step}\n`;
+                 });
+             }
+             
+             copyText += `\n총 예상 칼로리: ${currentResults.total}kcal`;
+
+             // 운동량 정보 추가
+             if (currentResults.total > 0) {
+                 copyText += '\n\n🏃‍♂️ 소모하기 위한 운동량:\n';
+                 const exercises = calculateExercise(currentResults.total);
+                 exercises.forEach(exercise => {
+                     copyText += `• ${exercise.name}: ${exercise.duration}\n`;
+                 });
+             }
+
+            navigator.clipboard.writeText(copyText).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ 복사됨!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                // 클립보드 API가 지원되지 않는 경우
+                const textArea = document.createElement('textarea');
+                textArea.value = copyText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ 복사됨!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+                 function resetApp() {
+             // 모든 UI 초기화
+             document.getElementById('imagePreview').style.display = 'none';
+             document.getElementById('loading').style.display = 'none';
+             document.getElementById('error').style.display = 'none';
+             document.getElementById('results').style.display = 'none';
+             document.getElementById('sampleSection').style.display = 'block';
+             document.getElementById('cameraInput').value = '';
+             document.getElementById('galleryInput').value = '';
+             currentResults = null;
+         }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', () => {
+            resetApp();
+        });
+    </script>
+</body>
+</html> 
