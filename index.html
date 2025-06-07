@@ -521,11 +521,13 @@
         </div>
     </div>
 
-    <!-- API 설정 (임시 하드코딩 - 배포용) -->
+    <!-- API 설정 파일 로드 -->
+    <script src="config.js"></script>
+    
     <script>
-        // 임시 API 키 (모바일 테스트용)
-        const GEMINI_API_KEY = 'AIzaSyAuIw9_z2inrQvqZHgvnfpr3gSso0C8LdU';
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+        // config.js에서 설정값 가져오기
+        const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY;
+        const GEMINI_API_URL = `${CONFIG.GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
 
         let currentResults = null;
 
